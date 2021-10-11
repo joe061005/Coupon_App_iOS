@@ -57,14 +57,15 @@ struct CouponDetailView: View {
                             
                         }){
                             Text("redeem")
-                                .padding(.horizontal, 40.0)
+                                .padding(.horizontal, 30.0)
                                 .foregroundColor(.black)
+                                
                             
                         }.padding(.all, 10.0).border(Color.black, width: 1)
                         
                         NavigationLink(destination: MapView(restaurant: Rest)){
                             Text("address")
-                                .padding(.horizontal, 40.0)
+                                .padding(.horizontal, 35.0)
                                 .padding(.vertical, 10.0).border(Color.black, width: 1)
                                 .foregroundColor(.black)
                         }

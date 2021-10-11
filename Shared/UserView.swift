@@ -24,7 +24,16 @@ struct UserView: View {
                 VStack{
                     List(Options){
                         option in
-                        Text(option.option)
+                        if(option.option == "Logoff/ Login"){
+                            NavigationLink(destination: LoginView() ){
+                                Text(option.option)
+                            }
+                        }else {
+                            NavigationLink(destination: LoginView() ){
+                                Text(option.option)
+                            }
+                        }
+                        
                     }
                 }
                 

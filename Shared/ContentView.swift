@@ -1,15 +1,15 @@
 //
 //  ContentView.swift
 //  Shared
-//
+//56
 //  Created by joe  on 7/10/2021.
 //
 
 import SwiftUI
 
-var baseURL = "https://b44e-223-16-89-31.ngrok.io"
+var baseURL = "https://9643-223-16-89-31.ngrok.io"
 
-var user:User =  User(id: -1, username: "", role: "", coins: -1)
+var LoginUser:User =  User(id: -1, username: "", role: "", coins: -1)
 
 struct ContentView: View {
     
