@@ -58,6 +58,7 @@ struct CouponDetailView: View {
                         }){
                             Text("redeem")
                                 .padding(.horizontal, 40.0)
+                                .foregroundColor(.black)
                             
                         }.padding(.all, 10.0).border(Color.black, width: 1)
                         
@@ -65,6 +66,7 @@ struct CouponDetailView: View {
                             Text("address")
                                 .padding(.horizontal, 40.0)
                                 .padding(.vertical, 10.0).border(Color.black, width: 1)
+                                .foregroundColor(.black)
                         }
                     }
                     .padding(.all, 10.0)

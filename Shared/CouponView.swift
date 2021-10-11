@@ -38,12 +38,15 @@ struct CouponView: View {
                     }
                     .padding(.all, 20.0)
                     
-                }.padding(.all, 10.0).border(Color.black, width: 1)
+                }.padding(.all, 10.0).overlay(
+                RoundedRectangle(cornerRadius:20)
+                    .stroke(Color.black, lineWidth: 2)
+                )
             }.onAppear(perform: startLoad)
                 .navigationTitle("Coupons")
 
             
-        } .padding(.top, -70.0)
+        } .padding(.top, -50.0)
         
     }
 }

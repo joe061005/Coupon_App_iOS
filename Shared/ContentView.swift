@@ -7,7 +7,9 @@
 
 import SwiftUI
 
-var baseURL = "https://153d-223-16-89-31.ngrok.io"
+var baseURL = "https://b44e-223-16-89-31.ngrok.io"
+
+var user:User =  User(id: -1, username: "", role: "", coins: -1)
 
 struct ContentView: View {
     
@@ -23,6 +25,16 @@ struct ContentView: View {
                 Image(systemName: "bag.fill")
                 Text("Malls")
             }
+            
+            CoinView().tabItem{
+                Image(systemName: "dollarsign.circle.fill")
+                Text("Coins")
+            }
+            
+            UserView().tabItem{
+                Image(systemName: "person.fill")
+                Text("User")
+            }
         }
     }
 }
@@ -33,3 +45,4 @@ struct ContentView_Previews:
         ContentView()
     }
 }
+

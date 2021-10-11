@@ -21,7 +21,7 @@ struct MallView: View {
             }.navigationTitle("Malls")
             
         }
-        .padding(.top, -70.0)
+        .padding(.top, -50.0)
     }
     
 }
