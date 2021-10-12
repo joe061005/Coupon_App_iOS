@@ -8,12 +8,20 @@
 import SwiftUI
 
 struct LoginView: View {
+    
+    enum ActiveAlert{
+        case success, fail
+    }
+    
     @State private var username: String = ""
     @State private var password: String = ""
     
     @Environment(\.presentationMode) var presentationMode
     
     @State private var showsAlert = false
+    @State private var activeAlert: ActiveAlert = .fail
+    
+    //let dispatchGroup = DispatchGroup()
     
     var body: some View {
         VStack(spacing: 40){
@@ -38,11 +46,12 @@ struct LoginView: View {
             
             
             Button(action : {
+                
                 checkLogin(username: username, password: password)
-                if(LoginUser.username != ""){
-                    self.presentationMode.wrappedValue.dismiss()
-                    
-                }
+                
+                updateRecord()
+                
+                
                 
             }){
                 Text("Login")
@@ -53,7 +62,12 @@ struct LoginView: View {
                 
             }.padding(.vertical, 10.0).border(Color.black, width: 2)
                 .alert(isPresented: self.$showsAlert){
-                    Alert
+                    switch (activeAlert) {
+                    case .success:
+                        return Alert(title: Text("Login successfully"), message: Text("Welcome back, \(LoginUser.username)"), dismissButton: .default(Text("Ok")))
+                    case .fail:
+                        return Alert(title: Text("Error"), message: Text("Invalid username or password"), dismissButton: .default(Text("Ok")))
+                    }
                 }
             
             Spacer()
@@ -61,55 +75,80 @@ struct LoginView: View {
         .padding(.all, 20.0)
         
     }
-}
-
-func checkLogin(username: String, password: String){
-    print("\(username) \(password)")
     
-    guard let url = URL(string: "\(baseURL)/login") else{
-        print("URL error")
-        return
-    }
-    
-    let body: [String: String] = ["username": username, "password": password]
-    
-    guard let finalBody = try? JSONEncoder().encode(body) else {
-        print("Body error")
-        return
-    }
-    
-    var request = URLRequest(url: url)
-    
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpMethod = "POST"
-    request.httpBody = finalBody
-    
-    print("request")
-    
-    let task = URLSession.shared.dataTask(with: request){ data, response, error in
+    func checkLogin(username: String, password: String){
         
-        if let error = error{
-            print("\(error)")
+        let group = DispatchGroup()
+        
+         group.enter()
+        
+        print("\(username) \(password)")
+        
+        guard let url = URL(string: "\(baseURL)/login") else{
+            print("URL error")
             return
         }
         
-        guard let httpResponse = response as?
-                HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else{
-                  Alert(title: Text("Error"), message: Text("Invalid username or password"), dismissButton: .default(Text("Ok")))
-                  print("\(response)")
-                  return
-              }
+        let body: [String: String] = ["username": username, "password": password]
         
-        if let data = data, let user = try?
-            JSONDecoder().decode(User.self, from: data){
-            LoginUser = user
-            Alert(title: Text("Login successfully"), message: Text("Welcome back, \(LoginUser.username)"), dismissButton: .default(Text("Ok")))
-            print("data")
+        guard let finalBody = try? JSONEncoder().encode(body) else {
+            print("Body error")
             return
         }
+        
+        var request = URLRequest(url: url)
+        
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.httpBody = finalBody
+        
+        print("request")
+        
+        let task = URLSession.shared.dataTask(with: request){ data, response, error in
+            
+            if let error = error{
+                print("\(error)")
+                return
+            }
+            
+            guard let httpResponse = response as?
+                    HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else{
+                      
+                      print("\(String(describing: response))")
+                      return
+                  }
+            
+            if let data = data, let user = try?
+                JSONDecoder().decode(User.self, from: data){
+                LoginUser = user
+                print("data")
+                print("After Data:  \(LoginUser)")
+                group.leave()
+                return
+            }
+        }
+        task.resume()
+        
+        group.notify(queue: .main){
+            updateRecord()
+        }
     }
-    task.resume()
+    
+    func updateRecord(){
+        print("updateRecord()")
+        print("LoginUser: \(LoginUser)")
+        if(LoginUser.username == ""){
+            self.activeAlert = .fail
+            self.showsAlert = true
+        }else {
+            self.activeAlert = .success
+            self.showsAlert = true
+            self.presentationMode.wrappedValue.dismiss()
+        }
+        self.showsAlert = true
+    }
+    
 }
 
 struct LoginView_Previews: PreviewProvider {
