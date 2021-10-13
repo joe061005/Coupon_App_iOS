@@ -35,6 +35,8 @@
 		D883B00D2711B764007EC036 /* CouponDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D883B00B2711B764007EC036 /* CouponDetailView.swift */; };
 		D883B00F2711E0CA007EC036 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D883B00E2711E0CA007EC036 /* MapView.swift */; };
 		D883B0102711E0CA007EC036 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D883B00E2711E0CA007EC036 /* MapView.swift */; };
+		D890D9C42716DA1500500B69 /* RedeemedCouponView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D890D9C32716DA1500500B69 /* RedeemedCouponView.swift */; };
+		D890D9C52716DA1500500B69 /* RedeemedCouponView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D890D9C32716DA1500500B69 /* RedeemedCouponView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +78,7 @@
 		D875477327143BDC0031E0B0 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		D883B00B2711B764007EC036 /* CouponDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CouponDetailView.swift; sourceTree = "<group>"; };
 		D883B00E2711E0CA007EC036 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		D890D9C32716DA1500500B69 /* RedeemedCouponView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedeemedCouponView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,6 +139,7 @@
 				D875476D271426F60031E0B0 /* RestByCoinView.swift */,
 				D8754770271430DF0031E0B0 /* UserView.swift */,
 				D875477327143BDC0031E0B0 /* LoginView.swift */,
+				D890D9C32716DA1500500B69 /* RedeemedCouponView.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -336,6 +340,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D875476527140A3C0031E0B0 /* MallView.swift in Sources */,
+				D890D9C42716DA1500500B69 /* RedeemedCouponView.swift in Sources */,
 				D86B370627116C31003AABFD /* CouponView.swift in Sources */,
 				D875476827140B3D0031E0B0 /* RestByMallView.swift in Sources */,
 				D8335DE0270F371C0005B29C /* ContentView.swift in Sources */,
@@ -354,6 +359,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D875476627140A3C0031E0B0 /* MallView.swift in Sources */,
+				D890D9C52716DA1500500B69 /* RedeemedCouponView.swift in Sources */,
 				D86B370727116C31003AABFD /* CouponView.swift in Sources */,
 				D875476927140B3D0031E0B0 /* RestByMallView.swift in Sources */,
 				D8335DE1270F371C0005B29C /* ContentView.swift in Sources */,

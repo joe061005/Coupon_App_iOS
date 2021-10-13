@@ -20,66 +20,282 @@ var Restaurants: [Restaurant] = [
     Restaurant(title: "New Town Plaza", latitude: 22.3814592, longitude: 114.1889307)
 ]
 
+
+enum ActiveAlert{
+    case NotLogin, confirm, success, fail, redeemed, redeemFail
+}
+
 struct CouponDetailView: View {
     
     var coupon: Coupons
     
+    @State private var showsAlert = false
+    @State private var activeAlert: ActiveAlert = .confirm
+    
+    @State private var isUpdate = false
+    @State private var isAdd = false
+    
+    
     var body: some View {
         let Rest = Restaurants.filter{
-             restaurant in
-             return restaurant.title == coupon.mall
-         }
-            VStack(alignment: .center, spacing: 30){
-                RemoteImageView(
-                    urlString: coupon.image
-                )
-                VStack(alignment: .leading){
+            restaurant in
+            return restaurant.title == coupon.mall
+        }
+        VStack(alignment: .center, spacing: 30){
+            RemoteImageView(
+                urlString: coupon.image
+            )
+            VStack(alignment: .leading){
+                
+                Text(coupon.name)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.bottom, 5.0)
+                Text(coupon.title)
+                    .padding(.bottom, 1.0)
+                
+                Text("Mall: \(coupon.mall), Coins: \(coupon.coins),")
+                    .padding(.bottom, 1.0)
+                
+                Text("Expiry Date: \(coupon.validtill)")
+                    .padding(.bottom, 1.0)
+                
+                
+                
+                HStack{
                     
-                    Text(coupon.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .padding(.bottom, 5.0)
-                    Text(coupon.title)
-                        .padding(.bottom, 1.0)
                     
-                    Text("Mall: \(coupon.mall), Coins: \(coupon.coins),")
-                        .padding(.bottom, 1.0)
-                    
-                    Text("Expiry Date: \(coupon.validtill)")
-                        .padding(.bottom, 1.0)
-                    
-                    
-                    
-                    HStack{
-                        
-                        
-                        Button(action : {
-                            
-                        }){
-                            Text("redeem")
-                                .padding(.horizontal, 30.0)
-                                .foregroundColor(.black)
-                                
-                            
-                        }.padding(.all, 10.0).border(Color.black, width: 1)
-                        
-                        NavigationLink(destination: MapView(restaurant: Rest)){
-                            Text("address")
-                                .padding(.horizontal, 35.0)
-                                .padding(.vertical, 10.0).border(Color.black, width: 1)
-                                .foregroundColor(.black)
+                    Button(action : {
+                        if(Login == false){
+                            self.showAlert(.NotLogin)
+                        }else{
+                            self.showAlert(.confirm)
                         }
+                    }){
+                        Text("redeem")
+                            .padding(.horizontal, 30.0)
+                            .foregroundColor(.black)
+                        
+                    }.padding(.all, 10.0).border(Color.black, width: 1)
+                        .alert(isPresented: self.$showsAlert){
+                            switch activeAlert{
+                            case .NotLogin:
+                                return Alert(title: Text(
+                                    "This function is not available for guest"
+                                ), message: Text("You need to login first!"),
+                                      dismissButton: .default(Text("ok")))
+                                
+                            case .confirm:
+                                return Alert(
+                                    title: Text(
+                                    "Are you sure?"
+                                ), message: Text("To redeem this coupon?")
+                                    ,primaryButton: .default(Text("No"))
+                                    ,secondaryButton: .default(Text("Yes")){
+                                    isRedeemed()
+                                }
+                                )
+                            case .success:
+                                return Alert(title: Text(
+                                    "redeem successfully"
+                                ), message: Text("please use it before the expiry date"),
+                                      dismissButton: .default(Text("ok")))
+                            case .fail:
+                                return Alert(title: Text(
+                                    "cannot redeeem"
+                                ), message: Text("No quota/ Not enough coins"),
+                                      dismissButton: .default(Text("ok")))
+                            case .redeemed:
+                                return Alert(title: Text(
+                                    "cannot redeem"
+                                ), message: Text("You have redeemed this coupon!"),
+                                      dismissButton: .default(Text("ok")))
+                            case .redeemFail:
+                                return Alert(title: Text(
+                                    "cannot redeem"
+                                ), message: Text("Server error"),
+                                      dismissButton: .default(Text("ok")))
+                            }
+                            
+                        }
+                    
+                    NavigationLink(destination: MapView(restaurant: Rest)){
+                        Text("address")
+                            .padding(.horizontal, 35.0)
+                            .padding(.vertical, 10.0).border(Color.black, width: 1)
+                            .foregroundColor(.black)
                     }
-                    .padding(.all, 10.0)
-                    
-                    
-                }.padding(.all).border(Color.black, width: 1)
+                }
+                .padding(.all, 10.0)
                 
                 
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .navigationBarTitleDisplayMode(.inline)
+            }.padding(.all).border(Color.black, width: 1)
+            
+            
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .navigationBarTitleDisplayMode(.inline)
     }
+    
+    func showAlert(_ active: ActiveAlert) -> Void{
+        DispatchQueue.global().async{
+            self.activeAlert = active
+            self.showsAlert = true
+        }
+    }
+    
+    func isRedeemed(){
+        
+        let group = DispatchGroup()
+        
+        group.enter()
+        
+        var isRedeem = false
+        
+        guard let url = URL(string: "\(baseURL)/check/\(coupon.id)")else{
+            print("Invalid url string")
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+
+            if let error = error {
+                print(error)
+                group.leave()
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 409 else {
+                      group.leave()
+                      return
+                  }
+            
+            isRedeem = true
+            group.leave()
+        }
+
+        
+        task.resume()
+        
+        group.notify(queue: .main){
+            if(isRedeem == true){
+                self.showAlert(.redeemed)
+            }else{
+                redeem()
+            }
+        }
+    }
+    
+    func redeem(){
+        
+        if(LoginUser.coins < coupon.coins || coupon.quota == 0){
+            self.showAlert(.fail)
+            return
+        }
+            AddRecord()
+            UpdateRecord()
+    }
+    
+    func AddRecord(){
+        
+       // let group = DispatchGroup()
+        
+       // group.enter()
+        
+        isAdd = false
+        
+        guard let Addurl = URL(string: "\(baseURL)/user/clients/add/\(coupon.id)")else{
+            print("Invalid url string")
+            return
+        }
+        
+        var request = URLRequest(url: Addurl)
+        request.httpMethod = "POST"
+        
+        let task = URLSession.shared.dataTask(with: request){ data,
+            response, error in
+
+            if let error = error{
+                print(error)
+               // group.leave()
+                return
+            }
+            
+            guard let httpResponse = response as?
+                    HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else{
+                      print("httpResponse error")
+                      //group.leave()
+                      return
+                  }
+            isAdd = true
+           // group.leave()
+        }
+        task.resume()
+        
+//        group.notify(queue: .main){
+//            if(isAdd == true){
+//                UpdateRecord()
+//            }else{
+//                self.showAlert(.redeemFail)
+//            }
+//        }
+    }
+    
+    func UpdateRecord(){
+        
+        let group = DispatchGroup()
+        
+        group.enter()
+        
+        isUpdate = false
+        
+        guard let Updateurl = URL(string: "\(baseURL)/user/update/\(coupon.id)")else{
+            print("Invalid url string")
+            return
+        }
+        
+        var request = URLRequest(url: Updateurl)
+        request.httpMethod = "PUT"
+        
+        let task = URLSession.shared.dataTask(with: request){ data,
+            response, error in
+
+            if let error = error{
+                print(error)
+                group.leave()
+                return
+            }
+            
+            guard let httpResponse = response as?
+                    HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else{
+                      print("httpResponse error")
+                      group.leave()
+                      return
+                  }
+            isUpdate = true
+            group.leave()
+            return
+        }
+        
+        task.resume()
+        
+        group.notify(queue: .main ){
+            checking()
+        }
+    }
+    
+    func checking(){
+        if(isAdd == true && isUpdate == true){
+            LoginUser = User(id: LoginUser.id, username: LoginUser.username, role: LoginUser.role, coins: LoginUser.coins - coupon.coins)
+            self.showAlert(.success)
+        }else{
+            self.showAlert(.redeemFail)
+        }
+    }
+    
 }
 
 

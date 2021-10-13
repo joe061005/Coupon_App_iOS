@@ -21,8 +21,6 @@ struct LoginView: View {
     @State private var showsAlert = false
     @State private var activeAlert: ActiveAlert = .fail
     
-    //let dispatchGroup = DispatchGroup()
-    
     var body: some View {
         VStack(spacing: 40){
             Spacer()
@@ -49,10 +47,6 @@ struct LoginView: View {
                 
                 checkLogin(username: username, password: password)
                 
-                updateRecord()
-                
-                
-                
             }){
                 Text("Login")
                     .font(.title3)
@@ -64,7 +58,12 @@ struct LoginView: View {
                 .alert(isPresented: self.$showsAlert){
                     switch (activeAlert) {
                     case .success:
-                        return Alert(title: Text("Login successfully"), message: Text("Welcome back, \(LoginUser.username)"), dismissButton: .default(Text("Ok")))
+                        return Alert(title: Text("Login successfully"), message: Text("Welcome back, \(LoginUser.username)"),
+                                     dismissButton: Alert.Button.default(Text("Ok"),
+                                     action:{
+                            self.presentationMode.wrappedValue.dismiss()
+                        })
+                        )
                     case .fail:
                         return Alert(title: Text("Error"), message: Text("Invalid username or password"), dismissButton: .default(Text("Ok")))
                     }
@@ -80,7 +79,7 @@ struct LoginView: View {
         
         let group = DispatchGroup()
         
-         group.enter()
+        group.enter()
         
         print("\(username) \(password)")
         
@@ -108,6 +107,7 @@ struct LoginView: View {
             
             if let error = error{
                 print("\(error)")
+                group.leave()
                 return
             }
             
@@ -116,13 +116,14 @@ struct LoginView: View {
                   (200...299).contains(httpResponse.statusCode) else{
                       
                       print("\(String(describing: response))")
+                      group.leave()
                       return
                   }
             
             if let data = data, let user = try?
                 JSONDecoder().decode(User.self, from: data){
                 LoginUser = user
-                print("data")
+                Login = true
                 print("After Data:  \(LoginUser)")
                 group.leave()
                 return
@@ -137,16 +138,17 @@ struct LoginView: View {
     
     func updateRecord(){
         print("updateRecord()")
-        print("LoginUser: \(LoginUser)")
+        print("LoginView LoginUser: \(LoginUser)")
+        print("LoginView Login: \(Login)")
         if(LoginUser.username == ""){
+            //Login = false
             self.activeAlert = .fail
             self.showsAlert = true
         }else {
+           // Login = true
             self.activeAlert = .success
             self.showsAlert = true
-            self.presentationMode.wrappedValue.dismiss()
         }
-        self.showsAlert = true
     }
     
 }
