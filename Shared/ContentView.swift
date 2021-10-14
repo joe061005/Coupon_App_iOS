@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-var baseURL = "https://a89a-223-16-89-31.ngrok.io"
+var baseURL = "https://0625-223-16-89-31.ngrok.io"
 
 var LoginUser:User =  User(id: -1, username: "", role: "", coins: -1)
 var Login = false
