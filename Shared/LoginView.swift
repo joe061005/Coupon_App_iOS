@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct LoginView: View {
+    @AppStorage("Login") var Login = false
+    @AppStorage("LoginUser") var LoginUser = Data()
+    @AppStorage("cookie") var cookie = ""
+    
+    @State private var decodedUser:User = User(id: -1, username: "", role: "", coins: -1)
     
     enum ActiveAlert{
         case success, fail
@@ -58,9 +63,9 @@ struct LoginView: View {
                 .alert(isPresented: self.$showsAlert){
                     switch (activeAlert) {
                     case .success:
-                        return Alert(title: Text("Login successfully"), message: Text("Welcome back, \(LoginUser.username)"),
+                        return Alert(title: Text("Login successfully"), message: Text("Welcome back, \(decodedUser.username)"),
                                      dismissButton: Alert.Button.default(Text("Ok"),
-                                     action:{
+                                                                         action:{
                             self.presentationMode.wrappedValue.dismiss()
                         })
                         )
@@ -72,6 +77,12 @@ struct LoginView: View {
             Spacer()
         }
         .padding(.all, 20.0)
+        .onAppear{
+            guard let decode = try? JSONDecoder().decode(User.self, from: LoginUser) else {return }
+            
+            decodedUser = decode
+            
+        }
         
     }
     
@@ -119,10 +130,21 @@ struct LoginView: View {
                       group.leave()
                       return
                   }
+//            print("httpResponse: \(httpResponse.allHeaderFields)")
+            
+//            var cookieField = httpResponse.value(forHTTPHeaderField: "Set-Cookie")
+//
+//            print("cookieField: \(cookieField)")
+//
+//            if(cookieField != nil){
+//                cookie = (cookieField?.components(separatedBy: ";")[0])!
+//            }
             
             if let data = data, let user = try?
                 JSONDecoder().decode(User.self, from: data){
-                LoginUser = user
+                guard let encodedUser = try? JSONEncoder().encode(user) else {return}
+                LoginUser = encodedUser
+                decodedUser = user
                 Login = true
                 print("After Data:  \(LoginUser)")
                 group.leave()
@@ -137,18 +159,27 @@ struct LoginView: View {
     }
     
     func updateRecord(){
-        print("updateRecord()")
-        print("LoginView LoginUser: \(LoginUser)")
-        print("LoginView Login: \(Login)")
-        if(LoginUser.username == ""){
+        //        print("updateRecord()")
+        //        print("LoginView LoginUser: \(LoginUser)")
+        //        print("LoginView Login: \(Login)")
+        if(decodedUser.username == ""){
             //Login = false
             self.activeAlert = .fail
             self.showsAlert = true
         }else {
-           // Login = true
+            // Login = true
             self.activeAlert = .success
             self.showsAlert = true
         }
+        
+        let cookies = HTTPCookieStorage.shared.cookies(for: URL(string: "\(baseURL)/login")!)
+        let LoginCookie = cookies![0]
+        
+        print("LOGIN COOKIE: \(LoginCookie)")
+        
+        print("\(LoginCookie.name)=\(LoginCookie.value)")
+        
+        cookie = "\(LoginCookie.name)=\(LoginCookie.value)"
     }
     
 }
@@ -166,5 +197,5 @@ struct User: Identifiable{
     let coins: Int
 }
 
-extension User: Decodable{}
+extension User: Decodable, Encodable{}
 

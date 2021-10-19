@@ -27,6 +27,12 @@ enum ActiveAlert{
 
 struct CouponDetailView: View {
     
+    @AppStorage("Login") var Login = false
+    @AppStorage("LoginUser") var LoginUser = Data()
+    @AppStorage("cookie") var cookie = ""
+    
+    @State private var decodedUser:User = User(id: -1, username: "", role: "", coins: -1)
+    
     var coupon: Coupons
     
     @State private var showsAlert = false
@@ -135,6 +141,11 @@ struct CouponDetailView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear{
+            guard let decode = try? JSONDecoder().decode(User.self, from: LoginUser) else {return }
+           
+           decodedUser = decode
+        }
     }
     
     func showAlert(_ active: ActiveAlert) -> Void{
@@ -156,8 +167,11 @@ struct CouponDetailView: View {
             print("Invalid url string")
             return
         }
+        
+        var request = URLRequest(url: url)
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
 
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
 
             if let error = error {
                 print(error)
@@ -189,7 +203,7 @@ struct CouponDetailView: View {
     
     func redeem(){
         
-        if(LoginUser.coins < coupon.coins || coupon.quota == 0){
+        if(decodedUser.coins < coupon.coins || coupon.quota == 0){
             self.showAlert(.fail)
             return
         }
@@ -212,6 +226,9 @@ struct CouponDetailView: View {
         
         var request = URLRequest(url: Addurl)
         request.httpMethod = "POST"
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
+        
+        print("Detail request")
         
         let task = URLSession.shared.dataTask(with: request){ data,
             response, error in
@@ -229,10 +246,15 @@ struct CouponDetailView: View {
                       //group.leave()
                       return
                   }
+            print("httpResponse: \(httpResponse)")
             isAdd = true
            // group.leave()
         }
         task.resume()
+        while(isAdd == false){
+            
+        }
+        print("running task")
         
 //        group.notify(queue: .main){
 //            if(isAdd == true){
@@ -258,6 +280,7 @@ struct CouponDetailView: View {
         
         var request = URLRequest(url: Updateurl)
         request.httpMethod = "PUT"
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
         
         let task = URLSession.shared.dataTask(with: request){ data,
             response, error in
@@ -276,6 +299,7 @@ struct CouponDetailView: View {
                       return
                   }
             isUpdate = true
+            print("ISADD: \(isAdd)")
             group.leave()
             return
         }
@@ -288,8 +312,12 @@ struct CouponDetailView: View {
     }
     
     func checking(){
+        print("isAdd: \(isAdd) isUpdate: \(isUpdate)")
         if(isAdd == true && isUpdate == true){
-            LoginUser = User(id: LoginUser.id, username: LoginUser.username, role: LoginUser.role, coins: LoginUser.coins - coupon.coins)
+            var data = User(id: decodedUser.id, username: decodedUser.username, role: decodedUser.role, coins: decodedUser.coins - coupon.coins)
+            guard let user = try? JSONEncoder().encode(data) else {return}
+            LoginUser = user
+            decodedUser = data
             self.showAlert(.success)
         }else{
             self.showAlert(.redeemFail)

@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct UserView: View {
+    @AppStorage("Login") var Login = false
+    @AppStorage("LoginUser") var LoginUser = Data()
+    @AppStorage("cookie") var cookie = ""
     
-    @State private var user: User = User(id: -1, username: "", role: "", coins: -1)
+    @State private var decodedUser:User = User(id: -1, username: "", role: "", coins: -1)
     @State private var isLogin = false
     
     @State private var showsLogoutAlert = false
@@ -22,13 +25,13 @@ struct UserView: View {
                     RemoteImageView(urlString: "https://support.logmeininc.com/assets/images/care/topnav/default-user-avatar.jpg")
                         .frame(width: 200.0, height: 200.0)
                     
-                    if(user.username == ""){
+                    if(decodedUser.username == ""){
                         Text("guest")
                             .font(.title)
                             .fontWeight(.bold)
                             .padding(.leading, 20.0)
                     }else{
-                        Text(user.username)
+                        Text(decodedUser.username)
                             .font(.title)
                             .fontWeight(.bold)
                             .padding(.leading, 20.0)
@@ -40,7 +43,7 @@ struct UserView: View {
                     List(Options){
                         option in
                         if(option.option == "Logoff/ Login"){
-                            if(user.username == ""){
+                            if(decodedUser.username == ""){
                                 NavigationLink(destination: LoginView() ){
                                     Text(option.option)
                                 }
@@ -91,11 +94,15 @@ struct UserView: View {
         }
         .padding(.top, -60.0)
         .onAppear{
+            guard let decode = try? JSONDecoder().decode(User.self, from: LoginUser) else {return }
+           
+           decodedUser = decode
             print("OnAppear")
             print("UserView LoginUser \(LoginUser)")
             print("UserView Login \(Login)")
-            user = LoginUser
-            print("UserView user  \(user)")
+            //user = LoginUser
+            print("UserView user  \(decodedUser)")
+            print("UserCOOKIE: \(cookie)")
         }
     }
 }
@@ -107,7 +114,7 @@ func Logout(){
     print("Logout()")
     print("UserView LoginUser \(LoginUser)")
     print("UserView Login \(Login)")
-    print("UserView user  \(user)")
+    print("UserView user  \(decodedUser)")
     print("UserView isLogin \(isLogin)")
     
     print("Logout")
@@ -118,6 +125,8 @@ func Logout(){
     
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
+    request.setValue(cookie, forHTTPHeaderField: "Cookie")
+    
     
     let task = URLSession.shared.dataTask(with: request){ data,
         response, error in
@@ -136,9 +145,13 @@ func Logout(){
                   Error = true
                   return
               }
-        LoginUser = User(id: -1, username: "", role: "", coins: -1)
-        user = LoginUser
+        let data = User(id: -1, username: "", role: "", coins: -1)
+        guard let user = try? JSONEncoder().encode(data) else {return}
+        LoginUser = user
+        decodedUser = data
         Login = false
+        cookie = ""
+        print("LOGOUTCOOKIE: \(cookie)")
         print("end of setting")
         return
     }

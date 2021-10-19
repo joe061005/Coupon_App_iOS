@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RedeemedCouponView: View {
+    @AppStorage("cookie") var cookie = ""
+    
     @State private var redeemedcoupons: redeemedCoupon = redeemedCoupon(id: -1, clients: [])
     
     var body: some View {
@@ -55,12 +57,16 @@ extension RedeemedCouponView {
     }
     
     func startLoad() {
+        print("Cookie \(cookie)")
         guard let url = URL(string: "\(baseURL)/redeem")else{
             print("Invalid url string")
             return
         }
         
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        var request = URLRequest(url: url)
+        request.setValue(cookie, forHTTPHeaderField: "Cookie")
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
             
             print("Redeemed running")
             
@@ -82,6 +88,7 @@ extension RedeemedCouponView {
         }
         task.resume()
         print("Redeemed end")
+        
     }
 }
 

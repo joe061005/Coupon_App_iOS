@@ -7,12 +7,15 @@
 
 import SwiftUI
 
-var baseURL = "https://0625-223-16-89-31.ngrok.io"
+var baseURL = "https://5cb4-223-16-89-31.ngrok.io"
 
-var LoginUser:User =  User(id: -1, username: "", role: "", coins: -1)
-var Login = false
+//var LoginUser:User =  User(id: -1, username: "", role: "", coins: -1)
+//var Login = false
 
 struct ContentView: View {
+    @AppStorage("Login") var Login = false
+    @AppStorage("LoginUser") var LoginUser = Data()
+    @AppStorage("cookie") var cookie = ""
     
     var body: some View {
         TabView{
@@ -35,6 +38,13 @@ struct ContentView: View {
             UserView().tabItem{
                 Image(systemName: "person.fill")
                 Text("User")
+            }
+        }.onAppear{
+            if(Login == false){
+                let data = User(id: -1, username: "", role: "", coins: -1)
+                guard let user = try? JSONEncoder().encode(data) else {return}
+                LoginUser = user
+                
             }
         }
     }
